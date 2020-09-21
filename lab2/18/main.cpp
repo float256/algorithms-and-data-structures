@@ -5,7 +5,7 @@
 // содержимого стека (9).
 //
 // 2. Автор: Никита Черемин
-// 3. Среда выполнения: CLang version 7.0.1-8
+// 3. Среда выполнения: Linux + CLang version 7.0.1-8
 
 #include<iostream>
 #include "DataStructures/Stack.h"
@@ -40,6 +40,8 @@ int main() {
             cout << "Terminating the program." << endl;
         } else if (currInput == "add_to_stack") {
             mainStack -> Push(new Queue<int>());
+            cout << "New queue has been added to the stack. Now the stack length is "
+                 << mainStack -> GetLength() << ".\n";
         } else if (currInput == "add_to_queue") {
             if (mainStack -> GetLength() > 0) {
                 string newQueueTopValue;
@@ -47,7 +49,11 @@ int main() {
                 cout << "Enter the number: ";
                 getline(cin, newQueueTopValue);
                 if (isNumber(newQueueTopValue)) {
-                    mainStack->Peek()->Enqueue(stoi(newQueueTopValue));
+                    try {
+                        mainStack->Peek()->Enqueue(stoi(newQueueTopValue));
+                    } catch (const std::out_of_range& e) {
+                        cout << "Number is very big" << endl;
+                    }
                 } else {
                     cout << "Input string is not a number" << endl;
                 }
@@ -83,7 +89,7 @@ int main() {
 
                     cout << "Queue #" << i + 1 << ": ";
                     if (allQueues[i] ->GetLength() != 0) {
-                        for (int j = 0; j < mainStack->Peek()->GetLength(); ++j) {
+                        for (int j = 0; j < allQueues[i]->GetLength(); ++j) {
                             cout << currQueueArray[j] << " ";
                         }
                     } else {
@@ -121,20 +127,33 @@ int main() {
 
 bool isNumber(std::string inputStr) {
     const char digits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
-    bool isAllSymbolsAreDigits = true;
 
-    for (char currSymbol: inputStr) {
-        bool isDigit = false;
-        for (char digit : digits) {
-            isDigit = (currSymbol == digit);
-            if (isDigit) {
+    if (!inputStr.empty()) {
+        int startIndex = 0;
+        bool isAllSymbolsAreDigits = true;
+
+        if ((inputStr[0] == '-') || (inputStr[0] == '+')) {
+            if (inputStr.length() <= 1) {
+                return false;
+            } else {
+                startIndex = 1;
+            }
+        }
+        for (int i = startIndex; i < inputStr.length(); ++i) {
+            bool isDigit = false;
+            for (char currDigit: digits) {
+                isDigit = (currDigit == inputStr[i]);
+                if (isDigit) {
+                    break;
+                }
+            }
+            isAllSymbolsAreDigits = isDigit;
+            if (!isAllSymbolsAreDigits) {
                 break;
             }
         }
-        isAllSymbolsAreDigits = isDigit;
-        if (!isDigit) {
-            break;
-        }
+        return isAllSymbolsAreDigits;
+    } else {
+        return false;
     }
-    return (isAllSymbolsAreDigits && !inputStr.empty());
 }
