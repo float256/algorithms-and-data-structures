@@ -5,9 +5,9 @@
 // содержимого стека (9).
 //
 // 2. Автор: Никита Черемин
-// 3. Среда выполнения: Linux + CLang version 7.0.1-8
+// 3. Среда выполнения: Linux + CLang version 10.0.1-1 + CMake version 3.18.2-1
 
-#include<iostream>
+#include <iostream>
 #include "DataStructures/Stack.h"
 #include "DataStructures/Queue.h"
 #include <memory>
