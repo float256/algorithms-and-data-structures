@@ -22,4 +22,12 @@ struct FolderInfo {
     std::string Name;
 };
 
+struct TreeNode {
+    std::variant<TextFileInfo, FolderInfo> Data;
+    TreeNode* NextNeighbourNode = nullptr;
+    TreeNode* FirstChildNode = nullptr;
+    TreeNode* ParentNode = nullptr;
+    FileSystemElementType ElementType;
+};
+
 #endif //SIMPLEFILESYSTEM_FILESYSTEMENTITIES_H
