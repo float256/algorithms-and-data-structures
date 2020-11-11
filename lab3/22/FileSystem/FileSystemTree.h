@@ -22,7 +22,6 @@ private:
         .ElementType = FileSystemFolder
     };
     TreeNode* CurrentFolder = RootFolder;
-    int NumberOfElementsInCurrentFolder = 0;
     Stack<std::string>* AbsolutePathToCurrentFolder= new Stack<std::string>();
 
     template<class T>
@@ -42,25 +41,39 @@ private:
         return isFound;
     }
 
+    void PrintLevelDesignation(std::string levelDesignation, int currLevel = 1) {
+        for (int i = 0; i < currLevel; ++i) {
+            std::cout << levelDesignation;
+        }
+    }
+
     void PrintOneNode(TreeNode* currNode, TreeNode* skippedNodes, int skippedNodesLength,
-                      std::string levelDesignation, int currLevel = 0, bool isPrintCurrentFolder = true,
-                      bool isPrintRootFolder = false) {
+                      std::string levelDesignation, int currLevel = 0, bool isPrintIndexInFolder = false,
+                      int indexInFolder = 0) {
         if ((currNode != nullptr) && !IsItemInArray<TreeNode>(currNode, skippedNodes, skippedNodesLength)) {
-            for (int i = 0; i < currLevel; ++i) {
-                std::cout << levelDesignation;
+            PrintLevelDesignation(levelDesignation, currLevel);
+            if (isPrintIndexInFolder && (currNode != RootFolder)) {
+                std::cout << "(" << indexInFolder << "): ";
             }
+
             std::variant<TextFileInfo, FolderInfo> currNodeInfo = currNode->Data;
             if (currNode->ElementType == FileSystemFolder) {
-                bool isPrintNodeData = ((currNode == RootFolder) && isPrintRootFolder) ||
-                                       ((currNode == CurrentFolder) && isPrintCurrentFolder) ||
-                                       ((currNode != RootFolder) && (currNode != CurrentFolder));
-                if (isPrintNodeData) {
-                    std::cout << std::get<FolderInfo>(currNodeInfo).Name << " (folder)\n";
-                }
                 TreeNode* currChildNode = currNode ->FirstChildNode;
+                int childNodeIdx = 0;
+
+                if (currNode == RootFolder) {
+                    std::cout << std::get<FolderInfo>(currNodeInfo).Name << " (root folder)" << std::endl;
+                } else if (currNode == CurrentFolder) {
+                    std::cout << std::get<FolderInfo>(currNodeInfo).Name << " (current folder)" << std::endl;
+                } else {
+                    std::cout << std::get<FolderInfo>(currNodeInfo).Name << " (folder)" << std::endl;
+                }
+
                 while (currChildNode != nullptr) {
-                    PrintOneNode(currChildNode, skippedNodes, skippedNodesLength, levelDesignation, currLevel + 1);
+                    PrintOneNode(currChildNode, skippedNodes, skippedNodesLength, levelDesignation, currLevel + 1,
+                                 isPrintIndexInFolder, childNodeIdx);
                     currChildNode = currChildNode ->NextNeighbourNode;
+                    ++childNodeIdx;
                 }
             } else {
                 std::cout << std::get<TextFileInfo>(currNodeInfo).Name << " (file)\n";
@@ -68,8 +81,17 @@ private:
         }
     }
 
-
 public:
+    FileSystemTree() {
+        AbsolutePathToCurrentFolder -> Push("");
+    }
+
+    ~FileSystemTree() {
+        delete RootFolder;
+        RootFolder = CurrentFolder = nullptr;
+        delete AbsolutePathToCurrentFolder;
+    }
+
     TreeNode* GetCurrentFolder() {
         return CurrentFolder;
     }
@@ -79,7 +101,15 @@ public:
     }
 
     int GetNumberOfElementsInCurrentFolder() {
-        return NumberOfElementsInCurrentFolder;
+        TreeNode* currChild = CurrentFolder -> FirstChildNode;
+        int numberOfElements = 0;
+
+        while (currChild != nullptr) {
+            ++numberOfElements;
+            currChild = currChild -> NextNeighbourNode;
+        }
+
+        return numberOfElements;
     }
 
     void AddFolder(std::string name) {
@@ -93,7 +123,6 @@ public:
             .ParentNode = CurrentFolder,
             .ElementType = FileSystemFolder
         };
-        ++NumberOfElementsInCurrentFolder;
     }
 
     void AddTextFile(std::string name, std::string text) {
@@ -108,12 +137,11 @@ public:
             .ParentNode = CurrentFolder,
             .ElementType = FileSystemFile
         };
-        ++NumberOfElementsInCurrentFolder;
     }
 
     TreeNode* GetChildNode(int indexInFolder) {
         TreeNode* childNode = CurrentFolder -> FirstChildNode;
-        if (indexInFolder > NumberOfElementsInCurrentFolder - 1) {
+        if (indexInFolder > GetNumberOfElementsInCurrentFolder() - 1) {
             throw std::out_of_range("Out of range when trying to get child node");
         }
         for (int i = 0; i < indexInFolder; ++i) {
@@ -128,8 +156,8 @@ public:
         if (childNode -> ElementType != FileSystemFolder) {
             throw std::invalid_argument("Node with specified order is not a folder");
         }
-        AbsolutePathToCurrentFolder -> Push(std::get<FolderInfo>(CurrentFolder -> Data).Name);
         CurrentFolder = childNode;
+        AbsolutePathToCurrentFolder -> Push(std::get<FolderInfo>(CurrentFolder -> Data).Name);
     }
 
     void CheckoutToParentNode() {
@@ -147,14 +175,77 @@ public:
         CurrentFolder -> NextNeighbourNode = previousChildNode;
     }
 
-    void PrintTree(TreeNode* skippedNodes=nullptr, int skippedNodesLength=0, std::string levelDesignation = "----",
-                   bool isPrintRootFolder = false, bool isPrintCurrentFolder = false) {
-        PrintOneNode(RootFolder, skippedNodes, skippedNodesLength, levelDesignation, 0, isPrintRootFolder, isPrintCurrentFolder);
+    void PrintTree(TreeNode* startNode, TreeNode* skippedNodes= nullptr, int skippedNodesLength= 0,
+                   std::string levelDesignation = "----", bool isPrintIndexInFolder = false) {
+        PrintOneNode(startNode, skippedNodes, skippedNodesLength, levelDesignation, 0, isPrintIndexInFolder);
     }
 
-    void PrintFolderContent(TreeNode* skippedNodes= nullptr, int skippedNodesLength=0, std::string levelDesignation = "----",
-                            bool isPrintRootFolder = false, bool isPrintCurrentFolder = false) {
-        PrintOneNode(CurrentFolder, skippedNodes, skippedNodesLength, levelDesignation, 0, isPrintRootFolder, isPrintCurrentFolder);
+    void PrintFolderContent(TreeNode* folder, TreeNode* skippedNodes = nullptr, int skippedNodesLength = 0,
+                            bool isPrintIndexInFolder = false) {
+        if (folder -> ElementType != FileSystemFolder) {
+            throw std::invalid_argument("Node is not a folder");
+        }
+
+        TreeNode* currChildNode = folder -> FirstChildNode;
+        int currChildNodeIdx = 0;
+        while (currChildNode != nullptr) {
+            if (isPrintIndexInFolder) {
+                std::cout << "(" << currChildNodeIdx << ") ";
+            }
+
+            if (currChildNode -> ElementType == FileSystemFolder) {
+                std::cout << std::get<FolderInfo>(currChildNode -> Data).Name << " (folder)" << std::endl;
+            } else {
+                std::cout << std::get<TextFileInfo>(currChildNode -> Data).Name << " (file)" << std::endl;
+            }
+
+            currChildNode = currChildNode -> NextNeighbourNode;
+            ++currChildNodeIdx;
+        }
+    }
+
+    void PrintPathToCurrentFolder() {
+        if (AbsolutePathToCurrentFolder -> GetLength() == 0) {
+            std::cout << std::get<FileSystemFolder>(RootFolder -> Data).Name;
+        } else {
+            std::string *startPathArrayPtr = AbsolutePathToCurrentFolder->ToArray();
+            std::string *endArrayPtr = startPathArrayPtr + AbsolutePathToCurrentFolder->GetLength();
+
+            std::string *currItemPtr = endArrayPtr - 1;
+            while (currItemPtr >= startPathArrayPtr) {
+                std::cout << (*currItemPtr) << "/";
+                --currItemPtr;
+            }
+        }
+    }
+
+    void RemoveChildNode(int childNodeOrder) {
+        TreeNode* currNode = GetChildNode(childNodeOrder);
+        TreeNode* nextNode = currNode -> NextNeighbourNode;
+
+        if (childNodeOrder == 0) {
+            CurrentFolder -> FirstChildNode = nextNode;
+        } else {
+            GetChildNode(childNodeOrder - 1) -> NextNeighbourNode = nextNode;
+        }
+        currNode -> NextNeighbourNode = nullptr;
+        delete currNode;
+    }
+
+    bool isExistNodeWithSameName(std::string name) {
+        TreeNode* currChildNode = CurrentFolder -> FirstChildNode;
+        bool isExist = false;
+
+        while ((currChildNode != nullptr) && !isExist) {
+            if (currChildNode -> ElementType == FileSystemFile) {
+                isExist = (std::get<TextFileInfo>(currChildNode -> Data).Name == name);
+            } else {
+                isExist = (std::get<FolderInfo>(currChildNode -> Data).Name == name);
+            }
+
+            currChildNode = currChildNode -> NextNeighbourNode;
+        }
+        return isExist;
     }
 };
 

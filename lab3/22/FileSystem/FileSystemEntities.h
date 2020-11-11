@@ -28,6 +28,15 @@ struct TreeNode {
     TreeNode* FirstChildNode = nullptr;
     TreeNode* ParentNode = nullptr;
     FileSystemElementType ElementType;
+
+    ~TreeNode(){
+        if (FirstChildNode != nullptr) {
+            delete FirstChildNode;
+        }
+        if (NextNeighbourNode != nullptr ) {
+            delete NextNeighbourNode;
+        }
+    }
 };
 
 #endif //SIMPLEFILESYSTEM_FILESYSTEMENTITIES_H

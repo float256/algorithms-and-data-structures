@@ -14,6 +14,7 @@
 
 #include <iostream>
 #include <memory>
+#include <variant>
 #include "FileSystem/FileSystemTree.h"
 
 int main(){
@@ -35,7 +36,10 @@ int main(){
                  << "\tmkdir:                 Add folder to tree" << endl
                  << "\tls /:                  Print tree" << endl
                  << "\tls:                    Print all folders and files from current folder" << endl
-                 << "\tcd:                    Checkout to child node" << endl;
+                 << "\tcd:                    Checkout to child node" << endl
+                 << "\tcd ../:                Checkout to parent node" << endl
+                 << "\trm:                    Remove element from folder" << endl
+                 << "\tpwd:                   Get path to current folder" << endl
         } else if (currInput == "exit") {
             cout << "Terminating the program." << endl;
         } else if (currInput == "mkfile") {
@@ -56,38 +60,78 @@ int main(){
 
             fileSystemTree->AddFolder(folderName);
         } else if (currInput == "ls /") {
-            fileSystemTree -> PrintTree();
+            fileSystemTree->PrintTree(fileSystemTree->GetRootFolder());
         } else if (currInput == "ls") {
-            fileSystemTree -> PrintFolderContent();
+            int numberOfElements = fileSystemTree->GetNumberOfElementsInCurrentFolder();
+            if (numberOfElements > 0) {
+                fileSystemTree->PrintTree(fileSystemTree->GetCurrentFolder());
+            } else {
+                cout << "Folder '" << get<FileSystemFolder>(fileSystemTree->GetCurrentFolder()->Data).Name
+                     << "' is empty" << endl;
+            }
         } else if (currInput == "cd") {
             int folderIdx;
-            TreeNode* childNode;
+            TreeNode *childNode;
 
-            if (fileSystemTree -> GetNumberOfElementsInCurrentFolder() == 0) {
+            if (fileSystemTree->GetNumberOfElementsInCurrentFolder() == 0) {
                 cout << "Current folder is empty" << endl;
                 continue;
             }
 
             cout << "All nodes in current folder:" << endl << endl;
-            fileSystemTree -> PrintFolderContent();
+            fileSystemTree->PrintFolderContent(fileSystemTree->GetCurrentFolder(),
+                                               nullptr, 0, true);
             cout << endl << "Enter index of folder you want to switch: ";
             cin >> folderIdx;
             getchar();
 
-            if (folderIdx > fileSystemTree -> GetNumberOfElementsInCurrentFolder() - 1) {
+            if (folderIdx > fileSystemTree->GetNumberOfElementsInCurrentFolder() - 1) {
                 cout << "Index is too large";
             } else if (folderIdx < 0) {
                 cout << "Index is incorrect";
             } else {
-                childNode = fileSystemTree -> GetChildNode(folderIdx);
+                childNode = fileSystemTree->GetChildNode(folderIdx);
 
-                if (childNode -> ElementType == FileSystemFolder) {
-                    fileSystemTree -> CheckoutToChildNode(folderIdx);
+                if (childNode->ElementType == FileSystemFolder) {
+                    fileSystemTree->CheckoutToChildNode(folderIdx);
                 } else {
                     cout << "Selected item is not a folder";
                 }
             }
 
+            cout << endl;
+        } else if (currInput == "cd ../") {
+            if (fileSystemTree->GetCurrentFolder() != fileSystemTree->GetRootFolder()) {
+                fileSystemTree->CheckoutToParentNode();
+            } else {
+                cout << "Current folder is root folder" << endl;
+            }
+        } else if (currInput == "rm") {
+            int nodeIndexInFolder;
+
+            if (fileSystemTree->GetNumberOfElementsInCurrentFolder() == 0) {
+                cout << "Current folder is empty" << endl;
+                continue;
+            }
+
+            cout << "All nodes in current folder:" << endl << endl;
+            fileSystemTree->PrintFolderContent(fileSystemTree->GetCurrentFolder(),
+                                               nullptr, 0, true);
+            cout << endl << "Enter index of element you want to remove: ";
+            cin >> nodeIndexInFolder;
+            getchar();
+
+            if (nodeIndexInFolder > fileSystemTree->GetNumberOfElementsInCurrentFolder() - 1) {
+                cout << "Index is too large" << endl;
+            } else if (nodeIndexInFolder < 0) {
+                cout << "Index is incorrect" << endl;
+            } else {
+                fileSystemTree->RemoveChildNode(nodeIndexInFolder);
+
+                cout << "Element was deleted successfully" << endl;
+            }
+        } else if (currInput == "pwd") {
+            fileSystemTree -> PrintPathToCurrentFolder();
             cout << endl;
         } else {
             cout << "Incorrect command. Type 'help' for more information." << endl;
