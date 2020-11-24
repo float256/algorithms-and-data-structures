@@ -11,6 +11,7 @@
 #include <iostream>
 #include "FileSystemEntities.h"
 #include "../DataStructures/Stack.h"
+#include "../DataStructures/Queue.h"
 
 class FileSystemTree {
 private:
@@ -24,33 +25,15 @@ private:
     TreeNode* CurrentFolder = RootFolder;
     Stack<std::string>* AbsolutePathToCurrentFolder= new Stack<std::string>();
 
-    template<class T>
-    bool IsItemInArray(T* item, T* arrayStartPtr, int arrayLength) {
-        if (arrayLength < 0) {
-            return false;
-        }
-
-        T* arrayEndPtr = arrayStartPtr + arrayLength;
-        T* currPtr = arrayStartPtr;
-        bool isFound = false;
-
-        while ((currPtr != arrayEndPtr) && !isFound) {
-            isFound = (currPtr == item);
-            ++currPtr;
-        }
-        return isFound;
-    }
-
     void PrintLevelDesignation(std::string levelDesignation, int currLevel = 1) {
         for (int i = 0; i < currLevel; ++i) {
             std::cout << levelDesignation;
         }
     }
 
-    void PrintOneNode(TreeNode* currNode, TreeNode* skippedNodes, int skippedNodesLength,
-                      std::string levelDesignation, int currLevel = 0, bool isPrintIndexInFolder = false,
-                      int indexInFolder = 0) {
-        if ((currNode != nullptr) && !IsItemInArray<TreeNode>(currNode, skippedNodes, skippedNodesLength)) {
+    void PrintOneNode(TreeNode* currNode, std::string levelDesignation, int currLevel = 0,
+                      bool isPrintIndexInFolder = false, int indexInFolder = 0, bool isPrintFileContent = false) {
+        if (currNode != nullptr) {
             PrintLevelDesignation(levelDesignation, currLevel);
             if (isPrintIndexInFolder && (currNode != RootFolder)) {
                 std::cout << "(" << indexInFolder << "): ";
@@ -70,13 +53,13 @@ private:
                 }
 
                 while (currChildNode != nullptr) {
-                    PrintOneNode(currChildNode, skippedNodes, skippedNodesLength, levelDesignation, currLevel + 1,
+                    PrintOneNode(currChildNode, levelDesignation, currLevel + 1,
                                  isPrintIndexInFolder, childNodeIdx);
                     currChildNode = currChildNode ->NextNeighbourNode;
                     ++childNodeIdx;
                 }
             } else {
-                std::cout << std::get<TextFileInfo>(currNodeInfo).Name << " (file)\n";
+                std::cout << std::get<TextFileInfo>(currNodeInfo).Name << " (file)" << std::endl;
             }
         }
     }
@@ -113,30 +96,46 @@ public:
     }
 
     void AddFolder(std::string name) {
-        TreeNode* previousChildNode = CurrentFolder -> FirstChildNode;
-        FolderInfo newFolderInfo = FolderInfo {
-            .Name = name
-        };
-        CurrentFolder -> FirstChildNode = new TreeNode {
-            .Data = newFolderInfo,
-            .NextNeighbourNode = previousChildNode,
+        TreeNode* newNode = new TreeNode {
+            .Data = FolderInfo{
+                .Name = name
+            },
             .ParentNode = CurrentFolder,
             .ElementType = FileSystemFolder
         };
+        if (CurrentFolder -> FirstChildNode != nullptr) {
+            TreeNode* lastNode = CurrentFolder -> FirstChildNode;
+            while (lastNode -> NextNeighbourNode != nullptr) {
+                lastNode = lastNode -> NextNeighbourNode;
+            }
+            lastNode -> NextNeighbourNode = newNode;
+        }
+        else
+        {
+            CurrentFolder -> FirstChildNode = newNode;
+        }
     }
 
     void AddTextFile(std::string name, std::string text) {
-        TreeNode* previousChildNode = CurrentFolder -> FirstChildNode;
-        TextFileInfo newTextFileInfo = TextFileInfo {
-            .Name = name,
-            .Text = text
-        };
-        CurrentFolder -> FirstChildNode = new TreeNode {
-            .Data = newTextFileInfo,
-            .NextNeighbourNode = previousChildNode,
+        TreeNode* newNode = new TreeNode {
+            .Data = TextFileInfo {
+                .Name = name,
+                .Text = text
+            },
             .ParentNode = CurrentFolder,
             .ElementType = FileSystemFile
         };
+
+        if (CurrentFolder -> FirstChildNode != nullptr) {
+            TreeNode* lastNode = CurrentFolder -> FirstChildNode;
+            while (lastNode -> NextNeighbourNode != nullptr) {
+                lastNode = lastNode -> NextNeighbourNode;
+            }
+            lastNode -> NextNeighbourNode = newNode;
+        }
+        else {
+            CurrentFolder -> FirstChildNode = newNode;
+        }
     }
 
     TreeNode* GetChildNode(int indexInFolder) {
@@ -169,15 +168,28 @@ public:
         }
     }
 
-    void AddExistingNode(TreeNode* node){
-        TreeNode* previousChildNode = CurrentFolder -> FirstChildNode;
-        node -> NextNeighbourNode = CurrentFolder -> NextNeighbourNode;
-        CurrentFolder -> NextNeighbourNode = previousChildNode;
+    void MoveChildNode(TreeNode* newParentNode, int childNodeOrder){
+        TreeNode* childNode = GetChildNode(childNodeOrder);
+
+        RemoveNodeFromTree(childNodeOrder, false);
+        if (newParentNode -> FirstChildNode != nullptr) {
+            TreeNode* lastNodeInNewParentNode = newParentNode -> FirstChildNode;
+            while(lastNodeInNewParentNode -> NextNeighbourNode != nullptr) {
+                lastNodeInNewParentNode = lastNodeInNewParentNode -> NextNeighbourNode;
+            }
+
+            childNode -> NextNeighbourNode = nullptr;
+            childNode -> ParentNode = newParentNode;
+            lastNodeInNewParentNode -> NextNeighbourNode = childNode;
+        }
+        else {
+            childNode -> NextNeighbourNode = nullptr;
+            newParentNode -> FirstChildNode = childNode;
+        }
     }
 
-    void PrintTree(TreeNode* startNode, TreeNode* skippedNodes= nullptr, int skippedNodesLength= 0,
-                   std::string levelDesignation = "----", bool isPrintIndexInFolder = false) {
-        PrintOneNode(startNode, skippedNodes, skippedNodesLength, levelDesignation, 0, isPrintIndexInFolder);
+    void PrintTree(TreeNode* startNode, std::string levelDesignation = "----", bool isPrintIndexInFolder = false) {
+        PrintOneNode(startNode, levelDesignation, 0, isPrintIndexInFolder);
     }
 
     void PrintFolderContent(TreeNode* folder, TreeNode* skippedNodes = nullptr, int skippedNodesLength = 0,
@@ -219,7 +231,7 @@ public:
         }
     }
 
-    void RemoveChildNode(int childNodeOrder) {
+    void RemoveNodeFromTree(int childNodeOrder, bool isRemoveNodeData = true) {
         TreeNode* currNode = GetChildNode(childNodeOrder);
         TreeNode* nextNode = currNode -> NextNeighbourNode;
 
@@ -228,24 +240,50 @@ public:
         } else {
             GetChildNode(childNodeOrder - 1) -> NextNeighbourNode = nextNode;
         }
-        currNode -> NextNeighbourNode = nullptr;
-        delete currNode;
+
+        if (isRemoveNodeData) {
+            currNode -> NextNeighbourNode = nullptr;
+            delete currNode;
+        }
     }
 
-    bool isExistNodeWithSameName(std::string name) {
-        TreeNode* currChildNode = CurrentFolder -> FirstChildNode;
-        bool isExist = false;
+    void CopyChildFolder(TreeNode* parentFolder, TreeNode* copyNode){
+        TreeNode* newNode = new TreeNode{
+            .ParentNode = parentFolder,
+            .ElementType = copyNode -> ElementType
+        };
+        if (newNode -> ElementType == FileSystemFolder) {
+            newNode -> Data = FolderInfo {
+                .Name = std::get<FolderInfo>(copyNode -> Data).Name
+            };
+        } else {
+            newNode -> Data = TextFileInfo {
+                .Name = std::get<TextFileInfo>(copyNode -> Data).Name,
+                .Text = std::get<TextFileInfo>(copyNode -> Data).Text
+            };
+        }
 
-        while ((currChildNode != nullptr) && !isExist) {
-            if (currChildNode -> ElementType == FileSystemFile) {
-                isExist = (std::get<TextFileInfo>(currChildNode -> Data).Name == name);
-            } else {
-                isExist = (std::get<FolderInfo>(currChildNode -> Data).Name == name);
-            }
-
+        Queue<TreeNode*>* allChildNodesQueue = new Queue<TreeNode*>(false);
+        TreeNode* currChildNode = copyNode -> FirstChildNode;
+        while (currChildNode != nullptr) {
+            allChildNodesQueue->Enqueue(currChildNode);
             currChildNode = currChildNode -> NextNeighbourNode;
         }
-        return isExist;
+
+        while (allChildNodesQueue->GetLength() > 0) {
+            CopyChildFolder(newNode, allChildNodesQueue->Dequeue());
+        }
+
+        if (parentFolder -> FirstChildNode != nullptr) {
+
+            TreeNode *lastNeighbourNode = parentFolder -> FirstChildNode;
+            while (lastNeighbourNode->NextNeighbourNode != nullptr) {
+                lastNeighbourNode = lastNeighbourNode->NextNeighbourNode;
+            }
+            lastNeighbourNode -> NextNeighbourNode = newNode;
+        } else{
+            parentFolder -> FirstChildNode = newNode;
+        }
     }
 };
 

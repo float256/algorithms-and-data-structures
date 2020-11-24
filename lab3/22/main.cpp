@@ -40,6 +40,10 @@ int main(){
                  << "\tcd ../:                Checkout to parent node" << endl
                  << "\trm:                    Remove element from folder" << endl
                  << "\tpwd:                   Get path to current folder" << endl
+                 << "\tmv:                    Move file" << endl
+                 << "\tcp:                    Copy file" << endl
+                 << "\tchange:                Change node data" << endl
+                 << "\tinfo:                  Print node info" << endl;
         } else if (currInput == "exit") {
             cout << "Terminating the program." << endl;
         } else if (currInput == "mkfile") {
@@ -86,20 +90,18 @@ int main(){
             getchar();
 
             if (folderIdx > fileSystemTree->GetNumberOfElementsInCurrentFolder() - 1) {
-                cout << "Index is too large";
+                cout << "Index is too large" << endl;
             } else if (folderIdx < 0) {
-                cout << "Index is incorrect";
+                cout << "Index is incorrect" << endl;
             } else {
                 childNode = fileSystemTree->GetChildNode(folderIdx);
 
                 if (childNode->ElementType == FileSystemFolder) {
                     fileSystemTree->CheckoutToChildNode(folderIdx);
                 } else {
-                    cout << "Selected item is not a folder";
+                    cout << "Selected item is not a folder" << endl;
                 }
             }
-
-            cout << endl;
         } else if (currInput == "cd ../") {
             if (fileSystemTree->GetCurrentFolder() != fileSystemTree->GetRootFolder()) {
                 fileSystemTree->CheckoutToParentNode();
@@ -126,13 +128,206 @@ int main(){
             } else if (nodeIndexInFolder < 0) {
                 cout << "Index is incorrect" << endl;
             } else {
-                fileSystemTree->RemoveChildNode(nodeIndexInFolder);
+                fileSystemTree->RemoveNodeFromTree(nodeIndexInFolder);
 
                 cout << "Element was deleted successfully" << endl;
             }
         } else if (currInput == "pwd") {
-            fileSystemTree -> PrintPathToCurrentFolder();
+            fileSystemTree->PrintPathToCurrentFolder();
             cout << endl;
+        } else if (currInput == "mv") {
+            int movedFolderIdx, newParentFolderIdx;
+
+            if (fileSystemTree->GetNumberOfElementsInCurrentFolder() == 0) {
+                cout << "Current folder is empty" << endl;
+                continue;
+            }
+
+            cout << "All nodes in current folder:" << endl << endl;
+            fileSystemTree->PrintFolderContent(fileSystemTree->GetCurrentFolder(),
+                                               nullptr, 0, true);
+            cout << endl << "Enter index of folder you want to move: ";
+            cin >> movedFolderIdx;
+            getchar();
+
+            if (movedFolderIdx > fileSystemTree->GetNumberOfElementsInCurrentFolder() - 1) {
+                cout << "Index is too large" << endl;
+                continue;
+            } else if (movedFolderIdx < 0) {
+                cout << "Index is incorrect" << endl;
+                continue;
+            }
+            cout << endl
+                 << "Enter name of the folder you want to move the selected folder (enter '-1' if you want move to parent folder): ";
+            cin >> newParentFolderIdx;
+            getchar();
+
+            if (newParentFolderIdx > fileSystemTree->GetNumberOfElementsInCurrentFolder() - 1) {
+                cout << "Index is too large" << endl;
+                continue;
+            } else if ((newParentFolderIdx < 0) && (newParentFolderIdx != -1)) {
+                cout << "Index is incorrect" << endl;
+                continue;
+            } else if (fileSystemTree -> GetChildNode(newParentFolderIdx) -> ElementType != FileSystemFolder){
+                cout << "Selected node is not a folder" << endl;
+                continue;
+            }  else if (newParentFolderIdx == movedFolderIdx) {
+                cout << "You can't move the node into itself" << endl;
+                continue;
+            }
+
+            if (newParentFolderIdx == -1) {
+                if (fileSystemTree->GetCurrentFolder() == fileSystemTree->GetRootFolder()) {
+                    cout << "Current folder hasn't parent folder." << endl;
+                } else {
+                    fileSystemTree->MoveChildNode(fileSystemTree->GetCurrentFolder()->ParentNode, movedFolderIdx);
+                }
+            } else {
+                fileSystemTree->MoveChildNode(fileSystemTree->GetChildNode(newParentFolderIdx), movedFolderIdx);
+            }
+        } else if (currInput == "cp") {
+            int movedFolderIdx, parentFolderIdx;
+
+            if (fileSystemTree->GetNumberOfElementsInCurrentFolder() == 0) {
+                cout << "Current folder is empty" << endl;
+                continue;
+            }
+
+            cout << "All nodes in current folder:" << endl << endl;
+            fileSystemTree->PrintFolderContent(fileSystemTree->GetCurrentFolder(),
+                                               nullptr, 0, true);
+            cout << endl << "Enter index of node you want to copy: ";
+            cin >> movedFolderIdx;
+            getchar();
+
+            if (movedFolderIdx > fileSystemTree->GetNumberOfElementsInCurrentFolder() - 1) {
+                cout << "Index is too large" << endl;
+                continue;
+            } else if (movedFolderIdx < 0) {
+                cout << "Index is incorrect" << endl;
+                continue;
+            }
+            cout << endl
+                 << "Enter index of the folder you want to move the selected node (enter '-1' if you want move to parent folder): ";
+            cin >> parentFolderIdx;
+            getchar();
+
+            if (parentFolderIdx > fileSystemTree->GetNumberOfElementsInCurrentFolder() - 1) {
+                cout << "Index is too large" << endl;
+                continue;
+            } else if ((parentFolderIdx < 0) && (parentFolderIdx != -1)) {
+                cout << "Index is incorrect" << endl;
+                continue;
+            } else if (fileSystemTree -> GetChildNode(parentFolderIdx) -> ElementType != FileSystemFolder){
+                cout << "Selected node is not a folder" << endl;
+                continue;
+            }
+
+            if (parentFolderIdx == -1) {
+                if (fileSystemTree->GetCurrentFolder() == fileSystemTree->GetRootFolder()) {
+                    cout << "Current folder hasn't parent folder." << endl;
+                } else {
+                    fileSystemTree->MoveChildNode(fileSystemTree->GetCurrentFolder()->ParentNode, parentFolderIdx);
+                }
+            } else {
+                fileSystemTree->CopyChildFolder(
+                    fileSystemTree -> GetChildNode(parentFolderIdx),
+                    fileSystemTree -> GetChildNode(movedFolderIdx));
+            }
+        } else if(currInput == "change"){
+            int nodeForChangeIdx;
+            TreeNode* nodeForChange;
+
+            if (fileSystemTree->GetNumberOfElementsInCurrentFolder() == 0) {
+                cout << "Current folder is empty" << endl;
+                continue;
+            }
+
+            cout << "All nodes in current folder:" << endl << endl;
+            fileSystemTree->PrintFolderContent(fileSystemTree->GetCurrentFolder(),
+                                               nullptr, 0, true);
+            cout << endl << "Enter index of node you want to change: ";
+            cin >> nodeForChangeIdx;
+            getchar();
+
+            if (nodeForChangeIdx > fileSystemTree->GetNumberOfElementsInCurrentFolder() - 1) {
+                cout << "Index is too large" << endl;
+                continue;
+            } else if (nodeForChangeIdx < 0) {
+                cout << "Index is incorrect" << endl;
+                continue;
+            }
+
+            nodeForChange = fileSystemTree -> GetChildNode(nodeForChangeIdx);
+            if (nodeForChange -> ElementType == FileSystemFolder) {
+                string newName;
+                FolderInfo nodeInfo = std::get<FolderInfo>(nodeForChange -> Data);
+
+                cout << "Enter new folder name: ";
+                getline(cin, newName);
+
+                nodeInfo.Name = newName;
+                nodeForChange -> Data = nodeInfo;
+            } else {
+                string newName, newFileText;
+                TextFileInfo nodeInfo = std::get<TextFileInfo>(nodeForChange -> Data);
+
+                cout << "Enter new file name: ";
+                getline(cin, newName);
+
+                cout << "Enter new file text: ";
+                getline(cin, newFileText);
+
+                nodeInfo.Name = newName;
+                nodeInfo.Text = newFileText;
+                nodeForChange -> Data = nodeInfo;
+            }
+        } else if (currInput == "info"){
+            int printingNodeIdx;
+            TreeNode* printingNode;
+
+            if (fileSystemTree->GetNumberOfElementsInCurrentFolder() == 0) {
+                cout << "Current folder is empty" << endl;
+                continue;
+            }
+
+            cout << "All nodes in current folder:" << endl << endl;
+            fileSystemTree->PrintFolderContent(fileSystemTree->GetCurrentFolder(),
+                                               nullptr, 0, true);
+            cout << endl << "Enter index of node you want to print: ";
+            cin >> printingNodeIdx;
+            getchar();
+            cout << endl;
+
+            if (printingNodeIdx > fileSystemTree->GetNumberOfElementsInCurrentFolder() - 1) {
+                cout << "Index is too large" << endl;
+                continue;
+            } else if (printingNodeIdx < 0) {
+                cout << "Index is incorrect" << endl;
+                continue;
+            }
+            printingNode = fileSystemTree -> GetChildNode(printingNodeIdx);
+
+            if (printingNode -> ElementType == FileSystemFolder) {
+                FolderInfo nodeData = std::get<FolderInfo>(printingNode -> Data);
+
+                cout << "Folder name: " << nodeData.Name << endl;
+                if (printingNode -> FirstChildNode == nullptr) {
+                    cout << "Folder is empty" << endl;
+                } else {
+                    cout << "Folder content: " << endl;
+                }
+                fileSystemTree -> PrintFolderContent(printingNode);
+            } else {
+                TextFileInfo nodeData = std::get<FileSystemFile>(printingNode -> Data);
+
+                cout << "File name: " << nodeData.Name << endl;
+                if (nodeData.Text == ""){
+                    cout << "File is empty" << endl;
+                } {
+                    cout << "File text: " << nodeData.Text << endl;
+                }
+            }
         } else {
             cout << "Incorrect command. Type 'help' for more information." << endl;
         }
