@@ -16,6 +16,7 @@
 #include <memory>
 #include <variant>
 #include "FileSystem/FileSystemTree.h"
+#include "FileSystem/FileSystemParser.h"
 
 int main(){
     using namespace std;
@@ -43,7 +44,9 @@ int main(){
                  << "\tmv:                    Move file" << endl
                  << "\tcp:                    Copy file" << endl
                  << "\tchange:                Change node data" << endl
-                 << "\tinfo:                  Print node info" << endl;
+                 << "\tinfo:                  Print node info" << endl
+                 << "\tsave:                  Save file system to file" << endl
+                 << "\tload:                  Load file system from file" << endl;
         } else if (currInput == "exit") {
             cout << "Terminating the program." << endl;
         } else if (currInput == "mkfile") {
@@ -52,8 +55,18 @@ int main(){
             cout << "Enter file name: ";
             getline(cin, fileName);
 
+            if ((fileName.find('(') != string::npos) || (fileName.find(')') != string::npos)) {
+                cout << "Brackets are a special character, so they cannot be used" << endl;
+                continue;
+            }
+
             cout << "Enter file text: ";
             getline(cin, fileText);
+
+            if ((fileText.find('(') != string::npos) || (fileText.find(')') != string::npos)) {
+                cout << "Brackets are a special character, so they cannot be used" << endl;
+                continue;
+            }
 
             fileSystemTree->AddTextFile(fileName, fileText);
         } else if (currInput == "mkdir") {
@@ -61,6 +74,11 @@ int main(){
 
             cout << "Enter folder name: ";
             getline(cin, folderName);
+
+            if ((folderName.find('(') != string::npos) || (folderName.find(')') != string::npos)) {
+                cout << "Brackets are a special character, so they cannot be used" << endl;
+                continue;
+            }
 
             fileSystemTree->AddFolder(folderName);
         } else if (currInput == "ls /") {
@@ -234,7 +252,7 @@ int main(){
                     fileSystemTree -> GetChildNode(parentFolderIdx),
                     fileSystemTree -> GetChildNode(movedFolderIdx));
             }
-        } else if(currInput == "change"){
+        } else if (currInput == "change"){
             int nodeForChangeIdx;
             TreeNode* nodeForChange;
 
@@ -266,6 +284,10 @@ int main(){
                 cout << "Enter new folder name: ";
                 getline(cin, newName);
 
+                if ((newName.find('(') != string::npos) || (newName.find(')') != string::npos)) {
+                    cout << "Brackets are a special character, so they cannot be used" << endl;
+                    continue;
+                }
                 nodeInfo.Name = newName;
                 nodeForChange -> Data = nodeInfo;
             } else {
@@ -275,8 +297,19 @@ int main(){
                 cout << "Enter new file name: ";
                 getline(cin, newName);
 
+                if ((newName.find('(') != string::npos) || (newName.find(')') != string::npos)) {
+                    cout << "Brackets are a special character, so they cannot be used" << endl;
+                    continue;
+                }
+
                 cout << "Enter new file text: ";
                 getline(cin, newFileText);
+
+
+                if ((newFileText.find('(') != string::npos) || (newFileText.find(')') != string::npos)) {
+                    cout << "Brackets are a special character, so they cannot be used" << endl;
+                    continue;
+                }
 
                 nodeInfo.Name = newName;
                 nodeInfo.Text = newFileText;
@@ -322,11 +355,51 @@ int main(){
                 TextFileInfo nodeData = std::get<FileSystemFile>(printingNode -> Data);
 
                 cout << "File name: " << nodeData.Name << endl;
-                if (nodeData.Text == ""){
+                if (nodeData.Text.empty()){
                     cout << "File is empty" << endl;
                 } {
                     cout << "File text: " << nodeData.Text << endl;
                 }
+            }
+        } else if (currInput == "save") {
+            string filePath;
+            ofstream file;
+
+            cout << "Enter path to the file: ";
+            getline(cin, filePath);
+
+            try {
+                file.open(filePath);
+
+                if (!file) {
+                    cout << "File not created" << endl;
+                    continue;
+                }
+                fileSystemTree->PrintTree(fileSystemTree->GetRootFolder(), "----", false, &file, true, false);
+                cout << "File was created successfully" << endl;
+
+                file.close();
+            } catch (exception &e) {
+                cout << "Error: " << e.what() << endl;
+            }
+        } else if (currInput == "load") {
+            string filePath;
+            ifstream inputFile;
+
+            cout << "Enter path to the file: ";
+            getline(cin, filePath);
+
+            try {
+                inputFile.open(filePath);
+                if (!inputFile) {
+                    cout << "File can't be read" << endl;
+                    continue;
+                }
+                std::string content((std::istreambuf_iterator<char>(inputFile)),(std::istreambuf_iterator<char>()));
+                fileSystemTree.reset(FileSystemParser::Parse(content));
+                cout << "New file system values was loaded successfully" << endl;
+            } catch(exception& e) {
+                cout << "Error: " << e.what() << endl;
             }
         } else {
             cout << "Incorrect command. Type 'help' for more information." << endl;

@@ -9,6 +9,7 @@
 #include <variant>
 #include <stdexcept>
 #include <iostream>
+#include <fstream>
 #include "FileSystemEntities.h"
 #include "../DataStructures/Stack.h"
 #include "../DataStructures/Queue.h"
@@ -25,19 +26,25 @@ private:
     TreeNode* CurrentFolder = RootFolder;
     Stack<std::string>* AbsolutePathToCurrentFolder= new Stack<std::string>();
 
-    void PrintLevelDesignation(std::string levelDesignation, int currLevel = 1) {
+    void PrintLevelDesignation(std::string levelDesignation, int currLevel = 1, std::ofstream *outputStreamPtr= nullptr) {
         for (int i = 0; i < currLevel; ++i) {
-            std::cout << levelDesignation;
+            PrintInFile(levelDesignation, outputStreamPtr);
         }
     }
 
-    void PrintOneNode(TreeNode* currNode, std::string levelDesignation, int currLevel = 0,
-                      bool isPrintIndexInFolder = false, int indexInFolder = 0, bool isPrintFileContent = false) {
+    void PrintInFile(std::string printedString, std::ofstream *outputStreamPtr) {
+        if (outputStreamPtr == nullptr) {
+            std::cout << printedString;
+        } else {
+            *outputStreamPtr << printedString;
+        }
+    }
+
+    void PrintOneNode(TreeNode* currNode, std::string levelDesignation, std::ofstream *outputStreamPtr,
+                      int currLevel = 0, bool isPrintIndexInFolder = false,
+                      bool isPrintFileContent = false, bool isIndicateCurrentFolder = true) {
         if (currNode != nullptr) {
-            PrintLevelDesignation(levelDesignation, currLevel);
-            if (isPrintIndexInFolder && (currNode != RootFolder)) {
-                std::cout << "(" << indexInFolder << "): ";
-            }
+            PrintLevelDesignation(levelDesignation, currLevel, outputStreamPtr);
 
             std::variant<TextFileInfo, FolderInfo> currNodeInfo = currNode->Data;
             if (currNode->ElementType == FileSystemFolder) {
@@ -45,21 +52,35 @@ private:
                 int childNodeIdx = 0;
 
                 if (currNode == RootFolder) {
-                    std::cout << std::get<FolderInfo>(currNodeInfo).Name << " (root folder)" << std::endl;
-                } else if (currNode == CurrentFolder) {
-                    std::cout << std::get<FolderInfo>(currNodeInfo).Name << " (current folder)" << std::endl;
+                    PrintInFile(
+                            std::get<FolderInfo>(currNodeInfo).Name + "(root folder)\n",
+                            outputStreamPtr);
+                } else if ((currNode == CurrentFolder) && isIndicateCurrentFolder) {
+                    PrintInFile(
+                            std::get<FolderInfo>(currNodeInfo).Name + "(current folder)\n",
+                            outputStreamPtr);
                 } else {
-                    std::cout << std::get<FolderInfo>(currNodeInfo).Name << " (folder)" << std::endl;
+                    PrintInFile(
+                            std::get<FolderInfo>(currNodeInfo).Name + "(folder)\n",
+                            outputStreamPtr);
                 }
 
                 while (currChildNode != nullptr) {
-                    PrintOneNode(currChildNode, levelDesignation, currLevel + 1,
-                                 isPrintIndexInFolder, childNodeIdx);
+                    PrintOneNode(currChildNode, levelDesignation, outputStreamPtr,
+                                 currLevel + 1, isPrintIndexInFolder, isPrintFileContent, isIndicateCurrentFolder);
                     currChildNode = currChildNode ->NextNeighbourNode;
                     ++childNodeIdx;
                 }
             } else {
-                std::cout << std::get<TextFileInfo>(currNodeInfo).Name << " (file)" << std::endl;
+                std::string printedString;
+                TextFileInfo fileInfo = std::get<TextFileInfo>(currNodeInfo);
+
+                if (isPrintFileContent) {
+                    printedString = fileInfo.Name + "(" + fileInfo.Text + ")(file)\n";
+                } else {
+                    printedString = fileInfo.Name + "(file)\n";
+                }
+                PrintInFile(printedString, outputStreamPtr);
             }
         }
     }
@@ -140,11 +161,21 @@ public:
 
     TreeNode* GetChildNode(int indexInFolder) {
         TreeNode* childNode = CurrentFolder -> FirstChildNode;
-        if (indexInFolder > GetNumberOfElementsInCurrentFolder() - 1) {
+        int currFolderElementsCount = GetNumberOfElementsInCurrentFolder();
+
+        if (((indexInFolder >= 0) && (indexInFolder > currFolderElementsCount - 1)) ||
+                ((indexInFolder < 0) && (indexInFolder < -currFolderElementsCount))) {
             throw std::out_of_range("Out of range when trying to get child node");
         }
-        for (int i = 0; i < indexInFolder; ++i) {
-            childNode = childNode -> NextNeighbourNode;
+
+        if (indexInFolder >= 0){
+            for (int i = 0; i < indexInFolder; ++i) {
+                childNode = childNode -> NextNeighbourNode;
+            }
+        } else {
+            for (int i = 0; i < currFolderElementsCount - abs(indexInFolder); ++i) {
+                childNode = childNode -> NextNeighbourNode;
+            }
         }
         return childNode;
     }
@@ -188,8 +219,10 @@ public:
         }
     }
 
-    void PrintTree(TreeNode* startNode, std::string levelDesignation = "----", bool isPrintIndexInFolder = false) {
-        PrintOneNode(startNode, levelDesignation, 0, isPrintIndexInFolder);
+    void PrintTree(TreeNode* startNode, std::string levelDesignation = "----", bool isPrintIndexInFolder = false,
+                   std::ofstream *outputStreamPtr = nullptr, bool isPrintFileContent = false, bool isIndicateCurrentFolder = true)
+    {
+        PrintOneNode(startNode, levelDesignation, outputStreamPtr, 0, isPrintIndexInFolder, isPrintFileContent, isIndicateCurrentFolder);
     }
 
     void PrintFolderContent(TreeNode* folder, TreeNode* skippedNodes = nullptr, int skippedNodesLength = 0,
@@ -263,7 +296,7 @@ public:
             };
         }
 
-        Queue<TreeNode*>* allChildNodesQueue = new Queue<TreeNode*>(false);
+        std::unique_ptr<Queue<TreeNode*>> allChildNodesQueue(new Queue<TreeNode*>(false));
         TreeNode* currChildNode = copyNode -> FirstChildNode;
         while (currChildNode != nullptr) {
             allChildNodesQueue->Enqueue(currChildNode);
