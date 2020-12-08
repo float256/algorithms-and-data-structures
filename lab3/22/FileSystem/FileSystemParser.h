@@ -9,7 +9,7 @@
 #include <regex>
 #include "FileSystemTree.h"
 
-static class FileSystemParser {
+class FileSystemParser {
 
 private:
     static void Split(std::string inputString, char delimiter, Queue<std::string>* outputQueue) {

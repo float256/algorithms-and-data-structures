@@ -17,12 +17,8 @@
 class FileSystemTree {
 private:
 
-    TreeNode* RootFolder = new TreeNode{
-        .Data = FolderInfo {
-            .Name = "/"
-        },
-        .ElementType = FileSystemFolder
-    };
+    TreeNode* RootFolder = new TreeNode();
+
     TreeNode* CurrentFolder = RootFolder;
     Stack<std::string>* AbsolutePathToCurrentFolder= new Stack<std::string>();
 
@@ -87,6 +83,10 @@ private:
 
 public:
     FileSystemTree() {
+        RootFolder -> Data = FolderInfo {
+                .Name = "/"
+        };
+        RootFolder -> ElementType = FileSystemFolder;
         AbsolutePathToCurrentFolder -> Push("");
     }
 
@@ -117,13 +117,12 @@ public:
     }
 
     void AddFolder(std::string name) {
-        TreeNode* newNode = new TreeNode {
-            .Data = FolderInfo{
-                .Name = name
-            },
-            .ParentNode = CurrentFolder,
-            .ElementType = FileSystemFolder
+        TreeNode* newNode = new TreeNode();
+        newNode -> Data = FolderInfo{
+            .Name = name
         };
+        newNode -> ParentNode = CurrentFolder;
+        newNode -> ElementType = FileSystemFolder;
         if (CurrentFolder -> FirstChildNode != nullptr) {
             TreeNode* lastNode = CurrentFolder -> FirstChildNode;
             while (lastNode -> NextNeighbourNode != nullptr) {
@@ -138,14 +137,13 @@ public:
     }
 
     void AddTextFile(std::string name, std::string text) {
-        TreeNode* newNode = new TreeNode {
-            .Data = TextFileInfo {
-                .Name = name,
-                .Text = text
-            },
-            .ParentNode = CurrentFolder,
-            .ElementType = FileSystemFile
+        TreeNode* newNode = new TreeNode();
+        newNode -> Data = TextFileInfo {
+            .Name = name,
+            .Text = text
         };
+        newNode -> ParentNode = CurrentFolder;
+        newNode -> ElementType = FileSystemFile;
 
         if (CurrentFolder -> FirstChildNode != nullptr) {
             TreeNode* lastNode = CurrentFolder -> FirstChildNode;
@@ -281,10 +279,10 @@ public:
     }
 
     void CopyChildFolder(TreeNode* parentFolder, TreeNode* copyNode){
-        TreeNode* newNode = new TreeNode{
-            .ParentNode = parentFolder,
-            .ElementType = copyNode -> ElementType
-        };
+        TreeNode* newNode = new TreeNode();
+        newNode -> ParentNode = parentFolder,
+        newNode -> ElementType = copyNode -> ElementType;
+
         if (newNode -> ElementType == FileSystemFolder) {
             newNode -> Data = FolderInfo {
                 .Name = std::get<FolderInfo>(copyNode -> Data).Name
