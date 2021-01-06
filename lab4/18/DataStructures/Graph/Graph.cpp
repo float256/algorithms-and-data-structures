@@ -70,3 +70,12 @@ void Graph::DeleteEdge(std::string firstNodeName, std::string secondNodeName) {
     _adjacencyMatrix[firstNodeAdjacencyMatrixIdx][secondNodeAdjacencyMatrixIdx] = 0;
     _adjacencyMatrix[secondNodeAdjacencyMatrixIdx][firstNodeAdjacencyMatrixIdx] = 0;
 }
+
+bool Graph::IsExist(const std::string &nodeName) {
+    for (const auto& currNodeName: _allNodeNames) {
+        if (currNodeName == nodeName) {
+            return true;
+        }
+    }
+    return false;
+}

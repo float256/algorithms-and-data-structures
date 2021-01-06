@@ -7,7 +7,7 @@
 
 #include <memory>
 #include "../Graph/Graph.h"
-#include "../Queue.h"
+#include "../Queue/Queue.h"
 
 class GraphParser {
 private:

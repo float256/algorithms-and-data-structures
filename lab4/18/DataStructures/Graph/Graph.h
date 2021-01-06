@@ -43,6 +43,8 @@ public:
     void SetEdge(std::string firstNodeName, std::string secondNodeName, int weight);
 
     void DeleteEdge(std::string firstNodeName, std::string secondNodeName);
+
+    bool IsExist(const std::string& nodeName);
 };
 
 
