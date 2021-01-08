@@ -1,0 +1,113 @@
+Start node: A
+
+Algorithm execution steps:
+Step №1
+    A    Path length: 0
+    B    Path length: Undefined
+    C    Path length: Undefined
+    D    Path length: Undefined
+    E    Path length: Undefined
+    F    Path length: Undefined
+    G    Path length: Undefined
+    H    Path length: Undefined
+    I    Path length: Undefined
+Step №2
+    A    Path length: 0    Final label
+    B (A)     Path length: 32
+    C (A)     Path length: 11
+    D (A)     Path length: 3
+    E    Path length: Undefined
+    F    Path length: Undefined
+    G    Path length: Undefined
+    H    Path length: Undefined
+    I    Path length: Undefined
+Step №3
+    A    Path length: 0    Final label
+    B (A)     Path length: 32
+    C (A)     Path length: 11
+    D (A)     Path length: 3    Final label
+    E    Path length: Undefined
+    F    Path length: Undefined
+    G (D)     Path length: 8
+    H    Path length: Undefined
+    I    Path length: Undefined
+Step №4
+    A    Path length: 0    Final label
+    B (A)     Path length: 32
+    C (G)     Path length: 10
+    D (A)     Path length: 3    Final label
+    E    Path length: Undefined
+    F    Path length: Undefined
+    G (D)     Path length: 8    Final label
+    H    Path length: Undefined
+    I    Path length: Undefined
+Step №5
+    A    Path length: 0    Final label
+    B (A)     Path length: 32
+    C (G)     Path length: 10    Final label
+    D (A)     Path length: 3    Final label
+    E (C)     Path length: 11
+    F    Path length: Undefined
+    G (D)     Path length: 8    Final label
+    H    Path length: Undefined
+    I (C)     Path length: 15
+Step №6
+    A    Path length: 0    Final label
+    B (E)     Path length: 13
+    C (G)     Path length: 10    Final label
+    D (A)     Path length: 3    Final label
+    E (C)     Path length: 11    Final label
+    F (E)     Path length: 13
+    G (D)     Path length: 8    Final label
+    H    Path length: Undefined
+    I (E)     Path length: 14
+Step №7
+    A    Path length: 0    Final label
+    B (E)     Path length: 13
+    C (G)     Path length: 10    Final label
+    D (A)     Path length: 3    Final label
+    E (C)     Path length: 11    Final label
+    F (E)     Path length: 13    Final label
+    G (D)     Path length: 8    Final label
+    H (F)     Path length: 16
+    I (E)     Path length: 14
+Step №8
+    A    Path length: 0    Final label
+    B (E)     Path length: 13    Final label
+    C (G)     Path length: 10    Final label
+    D (A)     Path length: 3    Final label
+    E (C)     Path length: 11    Final label
+    F (E)     Path length: 13    Final label
+    G (D)     Path length: 8    Final label
+    H (F)     Path length: 16
+    I (E)     Path length: 14
+Step №9
+    A    Path length: 0    Final label
+    B (E)     Path length: 13    Final label
+    C (G)     Path length: 10    Final label
+    D (A)     Path length: 3    Final label
+    E (C)     Path length: 11    Final label
+    F (E)     Path length: 13    Final label
+    G (D)     Path length: 8    Final label
+    H (F)     Path length: 16
+    I (E)     Path length: 14    Final label
+Step №10
+    A    Path length: 0    Final label
+    B (E)     Path length: 13    Final label
+    C (G)     Path length: 10    Final label
+    D (A)     Path length: 3    Final label
+    E (C)     Path length: 11    Final label
+    F (E)     Path length: 13    Final label
+    G (D)     Path length: 8    Final label
+    H (F)     Path length: 16    Final label
+    I (E)     Path length: 14    Final label
+
+Found paths:
+    B: Path length: 13	 Path: A -> D -> G -> C -> E -> B
+    C: Path length: 10	 Path: A -> D -> G -> C
+    D: Path length: 3	 Path: A -> D
+    E: Path length: 11	 Path: A -> D -> G -> C -> E
+    F: Path length: 13	 Path: A -> D -> G -> C -> E -> F
+    G: Path length: 8	 Path: A -> D -> G
+    H: Path length: 16	 Path: A -> D -> G -> C -> E -> F -> H
+    I: Path length: 14	 Path: A -> D -> G -> C -> E -> I

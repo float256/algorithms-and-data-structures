@@ -7,10 +7,8 @@
 // 4. Формат входного файла:
 //       В первой строке через пробел перечисляются все узлы графа
 //     На каждой следующих строках по одному перечисляются все рёбра
-//     графа. Через пробел пишутся имя первого узла, имя второго узла,
-//     вес ребра (вес не может быть отрицательным или равен нулю).
-//     Также стоит учесть, что граф ненаправленный, т.е. не имеет
-//     значения порядок, в котором указаны узлы при описании ребра.
+//     графа. Через пробел пишутся имя начального узла, имя конечного узла,
+//     вес ребра (вес не может быть отрицательным или равен нулю). Граф создается направленным
 //
 //       Пример:
 //           A B C D E
@@ -18,16 +16,18 @@
 //           B C 4
 //           C D 3
 //           D A 2
-//           B E 1
-//           C E 10
+//           B E 8
+//           C F 1
+//           E F 12
 //
 //       Вид получившегося графа:
 //
-//          A ---- 5 ---- B - 1 - E
-//           \             \     /
-//            2             4   10
-//             \             \ /
-//              D ---- 3 ---- C
+//          A ---- 5 ---> B ---- 8 ---> E
+//          ^             |             |
+//          |             4             12
+//          2             |             |
+//          |             v             v
+//          D <--- 3 ---- C ---- 1 ---> F
 #include <cstring>
 #include <iostream>
 #include "DataStructures/Graph/Graph.h"
@@ -41,18 +41,15 @@ int main(int argc, char *argv[]) {
     using namespace std;
 
     if ((argc == 2) && (strcmp(argv[1], "help") == 0)) {
-        cout << "Краткая справка:" << endl
-             << "\t Программа выполняет поиск кратчайшего пути в графе и записывает " << endl
-             << "пошаговое выполнение алгоритма в файл. Также стоит упомянуть, что " << endl
-             << "построенный граф является НЕНАПРАВЛЕННЫМ, т.е. запись ребра \"A B 1\" " << endl
-             << "идентична \"B A 1\"" << endl
+        cout << "Brief information:" << endl
+             << "The program searches the graph for the shortest path and writes the step-by-step execution of the algorithm to a file." << endl
              << endl
-             << "Параметры:" << endl
-             << "\t - Путь ко входному файлу" << endl
-             << "\t - Путь к выходному файлу" << endl
-             << "\t - Название стартовой вершины(не может содержать пробелы)" << endl
+             << "Parameters:" << endl
+             << "\t - Path to input file" << endl
+             << "\t - Path to output file" << endl
+             << "\t - Start node name (cannot contain spaces)" << endl
              << endl
-             << "Пример:" << endl
+             << "Example:" << endl
              << "\t DikstraAlgoritm input.txt output.txt A" << endl;
     } else if (argc == 4) {
         std::string inputFileName = argv[1];
@@ -63,7 +60,7 @@ int main(int argc, char *argv[]) {
 
             inputFile.open(inputFileName);
             if (!inputFile) {
-                throw invalid_argument("Входной файл не найден");
+                throw invalid_argument("Input file not found");
             }
             std::string inputFileContent(
                 (std::istreambuf_iterator<char>(inputFile)),
@@ -76,11 +73,11 @@ int main(int argc, char *argv[]) {
 
             inputFile.close();
 
-            cout << "Алгоритм выполнен успешно" << endl;
+            cout << "Algorithm completed successfully" << endl;
         } catch (const std::exception& e) {
             cout << e.what() << endl;
         }
     } else {
-        cout << "Некорректное количество аргументов. Введите \"DijkstraAlgorithm help\" для получения справки" << endl;
+        cout << "Incorrect number of arguments. Enter \"DijkstraAlgorithm help \"for help" << endl;
     }
 }

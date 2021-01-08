@@ -50,7 +50,7 @@ Graph &GraphParser::Parse(std::string graphInString) {
         std::string currString = allStringLines->Dequeue();
         std::unique_ptr<Queue<std::string>> currStringParts(&(Split(currString, ' ')));
         if (currStringParts -> GetLength() != 3) {
-            throw std::invalid_argument("Некорректный формат файла");
+            throw std::invalid_argument("Incorrect file format");
         }
 
         firstNodeName = currStringParts -> Dequeue();
@@ -61,12 +61,12 @@ Graph &GraphParser::Parse(std::string graphInString) {
         try {
             weight = std::stoi(currStringParts -> Dequeue());
             if (weight < 0) {
-                throw std::invalid_argument("Вес ребра не может быть отрицательным");
+                throw std::invalid_argument("Edge weight cannot be negative");
             } else if (weight == 0) {
-                throw std::invalid_argument("Вес ребра не может равен нулю");
+                throw std::invalid_argument("Edge weight cannot be zero");
             }
         } catch(const std::exception& e) {
-            std::string message = "Ошибка при парсинге числа: ";
+            std::string message = "Error while parsing a number: ";
             message += e.what();
 
             throw std::invalid_argument(message);

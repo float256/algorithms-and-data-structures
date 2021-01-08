@@ -18,11 +18,7 @@ int DijkstraAlgorithm::selectLabel(AlgorithmState algorithmState) {
         }
     }
 
-    if (algorithmState.AllLabels[selectedLabelIdx].IsFinalLabel) {
-        return -1;
-    } else {
-        return selectedLabelIdx;
-    }
+    return selectedLabelIdx;
 }
 
 Stack<std::string> &DijkstraAlgorithm::findPathToNode(const NodeLabel &searchingNodeLabel, const AlgorithmState &state) {
@@ -53,7 +49,7 @@ AlgorithmHistory DijkstraAlgorithm::FindAllShortPathsWithHistory(Graph graph, co
     std::vector<std::string> allNodeNames = graph.GetNodeNames();
 
     if (!graph.IsExist(startPoint)) {
-        throw std::invalid_argument("Стартовый узел с указанным именем не содержится в графе");
+        throw std::invalid_argument("The starting node with the specified name is not contained in the graph");
     }
 
     currAlgorithmState = AlgorithmState {};
@@ -101,34 +97,34 @@ void DijkstraAlgorithm::PrintHistoryToFile(AlgorithmHistory history, std::string
     std::ofstream outputFile;
     outputFile.open(outputFileName);
     if (!outputFile) {
-        throw std::invalid_argument("Выходной файл невозможно создать");
+        throw std::invalid_argument("Output file cannot be created");
     }
 
-    outputFile << "Стартовый узел: " << startNodeName << std::endl
+    outputFile << "Start node: " << startNodeName << std::endl
                << std::endl
-               << "Шаги выполнения алгоритма:" << std::endl;
+               << "Algorithm execution steps:" << std::endl;
     for (int i = 0; i < history.AllStates.size(); ++i) {
-        outputFile << "Шаг №" << (i + 1) << std::endl;
+        outputFile << "Step №" << (i + 1) << std::endl;
         for (const auto& currLabel: history.AllStates[i].AllLabels) {
             outputFile << "    " << currLabel.NodeName;
             if (!currLabel.PreviousNodeName.empty()) {
                 outputFile << " (" << currLabel.PreviousNodeName << ") ";
             }
-            outputFile << "    Длина пути: ";
+            outputFile << "    Path length: ";
             if (currLabel.Weight == -1) {
-                outputFile << "Не определена";
+                outputFile << "Undefined";
             } else {
                 outputFile << currLabel.Weight;
             }
             if (currLabel.IsFinalLabel) {
-                outputFile << "    Окончательная метка";
+                outputFile << "    Final label";
             }
             outputFile << std::endl;
         }
     }
 
     outputFile << std::endl
-               << "Найденные пути:" << std::endl;
+               << "Found paths:" << std::endl;
     AlgorithmState lastState = history.AllStates.back();
     for(const auto& currLabel: lastState.AllLabels) {
         if (currLabel.NodeName == startNodeName) {
@@ -139,8 +135,9 @@ void DijkstraAlgorithm::PrintHistoryToFile(AlgorithmHistory history, std::string
 
         outputFile << "    " << currLabel.NodeName << ": ";
         if (pathToNode.GetLength() == 0) {
-            outputFile << "Узел недостижим из узла '" << startNodeName << "'";
+            outputFile << "This node is not reachable from node '" << startNodeName << "'";
         } else {
+            outputFile << "Path length: " << currLabel.Weight << "\t Path: ";
             while (pathToNode.GetLength() > 0) {
                 outputFile << pathToNode.Pop();
                 if (pathToNode.GetLength() != 0) {

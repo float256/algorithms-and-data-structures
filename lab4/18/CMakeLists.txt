@@ -1,6 +1,7 @@
 project(DijkstraAlgorithm)
 cmake_minimum_required(VERSION 3.17)
 add_compile_options(-std=c++17)
+add_compile_options(/std:c++latest)
 
 add_subdirectory(DataStructures)
 add_subdirectory(AlgorithmImplementation)

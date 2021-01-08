@@ -2,7 +2,9 @@
 // Created by user on 01.01.2021
 //
 
+#include <stdexcept>
 #include "Graph.h"
+
 
 template<class T>
 int Graph::findIndex(std::vector<T> array, T element) {
@@ -21,7 +23,7 @@ int Graph::getNodeIdx(std::string nodeName) {
     int nodeAdjacencyMatrixIdx = findIndex<std::string>(_allNodeNames, nodeName);
 
     if (nodeAdjacencyMatrixIdx == -1) {
-        throw std::invalid_argument("Узел с названием '" + nodeName  +"' не найден");
+        throw std::invalid_argument("Node named '" + nodeName  +"' was not found");
     }
 
     return nodeAdjacencyMatrixIdx;
@@ -51,7 +53,7 @@ void Graph::SetNodeNames(std::vector<std::string> newNodeNames) {
     if (GetNumberOfNodes() == newNodeNames.size()){
         _allNodeNames = newNodeNames;
     } else {
-        throw std::invalid_argument("Длина массива с новыми именами узлов не совпадает с предыдущим массивом");
+        throw std::invalid_argument("The length of the array with new node names does not match the number of nodes");
     }
 }
 
@@ -60,7 +62,6 @@ void Graph::SetEdge(std::string firstNodeName, std::string secondNodeName, int w
     int secondNodeAdjacencyMatrixIdx = getNodeIdx(secondNodeName);
 
     _adjacencyMatrix[firstNodeAdjacencyMatrixIdx][secondNodeAdjacencyMatrixIdx] = weight;
-    _adjacencyMatrix[secondNodeAdjacencyMatrixIdx][firstNodeAdjacencyMatrixIdx] = weight;
 }
 
 void Graph::DeleteEdge(std::string firstNodeName, std::string secondNodeName) {
@@ -68,7 +69,6 @@ void Graph::DeleteEdge(std::string firstNodeName, std::string secondNodeName) {
     int secondNodeAdjacencyMatrixIdx = getNodeIdx(secondNodeName);
 
     _adjacencyMatrix[firstNodeAdjacencyMatrixIdx][secondNodeAdjacencyMatrixIdx] = 0;
-    _adjacencyMatrix[secondNodeAdjacencyMatrixIdx][firstNodeAdjacencyMatrixIdx] = 0;
 }
 
 bool Graph::IsExist(const std::string &nodeName) {
