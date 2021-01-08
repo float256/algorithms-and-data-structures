@@ -36,14 +36,12 @@ public:
     }
 
     void Enqueue(T newData) {
+        Node* newQueueNode = new Node{};
+        newQueueNode->Data = newData;
         if (Bottom == nullptr) {
-            Top = Bottom = new Node {
-                .Data = newData
-            };
+            Top = Bottom = newQueueNode;
         } else {
-            Bottom -> NextNode = new Node {
-                .Data = newData
-            };
+            Bottom -> NextNode = newQueueNode;
             Bottom = Bottom -> NextNode;
         }
         _length++;

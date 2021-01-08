@@ -54,12 +54,12 @@ AlgorithmHistory DijkstraAlgorithm::FindAllShortPathsWithHistory(Graph graph, co
 
     currAlgorithmState = AlgorithmState {};
     for (int i = 0; i < graph.GetNumberOfNodes(); ++i) {
-        currAlgorithmState.AllLabels.push_back(NodeLabel {
-                .NodeName = allNodeNames[i],
-                .PreviousNodeName = "",
-                .Weight = -1,
-                .IsFinalLabel = false,
-        });
+        NodeLabel newLabel = NodeLabel{};
+        newLabel.NodeName = allNodeNames[i];
+        newLabel.PreviousNodeName = "";
+        newLabel.Weight = -1;
+        newLabel.IsFinalLabel = false;
+        currAlgorithmState.AllLabels.push_back(newLabel);
         if (allNodeNames[i] == startPoint) {
             currAlgorithmState.AllLabels.back().Weight = 0;
         }

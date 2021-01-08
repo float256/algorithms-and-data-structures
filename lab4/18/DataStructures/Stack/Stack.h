@@ -29,16 +29,13 @@ public:
     }
 
     void Push(T newData){
+        Node* newTopNode = new Node{};
+        newTopNode -> Data = newData;
         if (_length <= 0) {
-            Top = new Node {
-                .Data = newData
-            };
+            Top = newTopNode;
         }
         else {
-            Node* newTopNode = new Node {
-                .Data = newData,
-                .NextNode = Top
-            };
+            newTopNode -> NextNode = Top;
             Top = newTopNode;
         }
         _length++;
