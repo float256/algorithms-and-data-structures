@@ -30,6 +30,7 @@
 //          D <--- 3 ---- C ---- 1 ---> F
 #include <cstring>
 #include <iostream>
+#include <conio.h>
 #include "DataStructures/Graph/Graph.h"
 #include "DataStructures/GraphParser/GraphParser.h"
 #include "AlgorithmImplementation/DijkstraAlgorithm.h"
@@ -77,6 +78,7 @@ int main(int argc, char *argv[]) {
         } catch (const std::exception& e) {
             cout << e.what() << endl;
         }
+        getch();
     } else {
         cout << "Incorrect number of arguments. Enter \"DijkstraAlgorithm help \"for help" << endl;
     }
